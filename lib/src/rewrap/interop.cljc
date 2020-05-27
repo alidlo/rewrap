@@ -1,8 +1,8 @@
-(ns defwrap.react.interop
+(ns rewrap.interop
   (:require #?@(:cljs [[goog.object]
                        ["react" :as react]])
             #?@(:clj [[clojure.string :as string]]))
-  #?(:cljs (:require-macros [defwrap.react.interop])))
+  #?(:cljs (:require-macros [rewrap.interop])))
 
 #?(:cljs 
     (def create-element react/createElement))

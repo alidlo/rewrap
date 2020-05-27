@@ -1,5 +1,5 @@
 {
-  "name": "@defwrap/react",
+  "private": true,
   "devDependencies": {
     "shadow-cljs": "^2.9.4"
   },

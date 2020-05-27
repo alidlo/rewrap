@@ -1,4 +1,4 @@
-{:deps {defwrap.react/lib {:local/root "./lib"}}
+{:deps {rewrap/lib {:local/root "./lib"}}
  :aliases
  {:local {:extra-deps
           {;; build deps
