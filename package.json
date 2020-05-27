@@ -1,0 +1,7 @@
+{
+  "name": "@defwrap/react",
+  "devDependencies": {
+    "shadow-cljs": "^2.9.4"
+  },
+  "dependencies": {}
+}
