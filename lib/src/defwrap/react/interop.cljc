@@ -1,8 +1,11 @@
 (ns defwrap.react.interop
-  (:require [helix.core]
-            #?@(:cljs [[goog.object]])
+  (:require #?@(:cljs [[goog.object]
+                       ["react" :as react]])
             #?@(:clj [[clojure.string :as string]]))
-  #?(:cljs (:require-macros [reso.ui.interop])))
+  #?(:cljs (:require-macros [defwrap.react.interop])))
+
+#?(:cljs 
+    (def create-element react/createElement))
 
 ;; ## Casing Utilities
 #?(:clj
@@ -28,36 +31,52 @@
            (if val val (throw (ex-info "Could not resolve symbol" {:sym x}))))
          x))
 
-     (defn- transform-args-props "Apply function `f` to `args` props."
+     (defn transform-args-props "Apply function `f` to `args` props."
        [args f]
        (if-let [props (when (map? (first args))
                         (first args))]
          (assoc (into [] args) 0 (f props))
          args))
 
-     (defn- js-module*
-       "Macro helper for getting js module and warning if it does not exist."
+     (defn js-module* "Macro helper for getting js module, throws error if module does not exist."
        [sym k]
        `(if (goog.object/get ~sym ~k)
           (goog.object/get ~sym ~k)
-          (throw (ex-info "Intered component not found" {:sym ~sym
-                                                         :key ~k}))))
+          (throw (ex-info "Interned component not found" {:sym ~sym :key ~k}))))
+     
+     (defmacro compile-element "Default compile element macro."
+       [tag & args]
+       `(create-element ~tag ~@args))
 
-     (defn- cljs-comp*
-       "Macro helper for wrapping component in [helix.core/$] macro that pre-compiles cljs props."
-       [sym k parse-args]
-       `(defmacro ~(symbol (camel->lisp k))
+     (defn comp-factory*
+       "Macro helper for wrapping component in `compiler` macro that parsers cljs props and children `args`."
+       [sym k {:keys [compiler parse-name parse-args]}]
+       `(defmacro ~(symbol (parse-name k))
           [& args#]
-          `(helix.core/$ ~(js-module* ~sym ~k) ~@(~parse-args args#))))
+          `(~'~compiler ~(js-module* ~sym ~k) ~@(~parse-args args#))))
+
 
      (defmacro intern-comps
-       "Intern list of a component `tags` for provided `sym`.
+       "Intern list of a component `tags` for provided `sym` based on given `opts`.
         Arguments: 
          - `sym` symbol expected to reference a js import object.
-         - `tags` can be a quoted or unquoted list."
+         - `tags` can be a quoted or unquoted list.
+         - opts "
        ([sym tags] `(intern-comps ~sym ~tags {}))
-       ([sym tags {:keys [parse-props]
-                   :or   {parse-props identity}}]
-        `(do ~@(for [t (symsolve (as-is tags))]
-                 (cljs-comp* sym (str t) `(fn [args#] (transform-args-props args# ~parse-props)))))))))
+       ([sym tags {:as _opts
+                   :keys [compiler
+                          parse-name
+                          parse-props]
+                   :or   {compiler   `compile-element
+                          parse-name   camel->lisp
+                          parse-props  identity}}]
+        `(do 
+           ~@(for [t (symsolve (as-is tags))]
+                 (comp-factory* sym (str t) {:compiler    compiler
+                                             :parse-name  parse-name
+                                             :parse-args `(fn [args#] (transform-args-props args# ~parse-props))})))))))
 
+
+(comment
+  (macroexpand '(intern-comps  'rn '[View]))
+  )
