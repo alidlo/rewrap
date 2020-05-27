@@ -1,0 +1,16 @@
+# clj
+.nrepl-port
+.cpcache
+.shadow-cljs
+.clj-kondo/.cache
+
+# js
+npm-debug.*
+yarn-error.log
+node_modules
+
+# emacs
+.#*
+
+# macOS
+.DS_Store
