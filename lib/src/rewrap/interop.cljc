@@ -49,7 +49,7 @@
        `(create-element ~tag ~@args))
 
      (defn comp-factory*
-       "Macro helper for wrapping component in `compiler` macro that parsers cljs props and children `args`."
+       "Macro helper for wrapping component in `compiler` macro that parsers cljs component `args`."
        [sym k {:keys [compiler parse-name parse-args]}]
        `(defmacro ~(symbol (parse-name k))
           [& args#]
