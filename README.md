@@ -1,5 +1,7 @@
 # Rewrap (WIP)
 
+![Clojars Project](https://img.shields.io/clojars/v/rewrap)
+
 Rewrap makes it easy to use React libraries in Clojurescript without all the boilerplate.
 
 Preview:
@@ -39,7 +41,7 @@ Below, for example, is how you could use Helix and React Native together:
                           :compiler 'helix.core/$}))
 ```
 
-Notice how as the `:js-ns` we pass `my-app.ui/rn` so the list of `interns` will be accessed under that module (i.e. rn/View, rn/Text, etc.).
+Notice how as the `:js-ns` we pass `my-app.ui/rn` so the list of `interns` will be accessed under that js module (i.e. `rn.View`, `rn.Text`, etc.).
 
 As the compiler, we passed the `helix.core/$` macro, so the components props and children will be pre-compiled according to that macro.
 
