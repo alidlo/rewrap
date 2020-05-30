@@ -3,6 +3,7 @@
 .cpcache
 .shadow-cljs
 .clj-kondo/.cache
+target 
 
 # js
 npm-debug.*
