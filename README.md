@@ -5,22 +5,18 @@ Rewrap makes it easy to wrap React libraries.
 Example:
 
 ```clj
-(ns reso.ui.router
+(ns my-app.ui
   (:require [helix.core]
             [rewrap.interop :as interop]
-            #?@(:cljs [["react-router-dom" :as react-router-dom]]))
-  #?(:cljs (:require-macros [reso.ui.router])))
+            #?@(:cljs [["react-native" :as react-native]]))
+  #?(:cljs (:require-macros [my-app.ui])))
 
 #?(:cljs
-   (def rr react-router-dom))
+   (def rn react-native))
 
 #?(:clj
-   (interop/intern-comps `rr
-                         '[BrowserRouter
-                           Routes
-                           Route
-                           Outlet
-                           Navigate
-                           Link]
-                         {:compiler 'helix.core/$}))
+   (interop/intern-comps {:js-ns   `rn
+                          :interns [View
+                                    Text] 
+                          :compiler 'helix.core/$}))
 ```
