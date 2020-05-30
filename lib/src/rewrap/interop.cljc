@@ -1,13 +1,7 @@
 (ns rewrap.interop
-  (:require #?@(:cljs [[goog.object]
-                       [cljs.core]
-                       ["react" :as react]])
+  (:require #?@(:cljs [[goog.object]])
             #?@(:clj [[clojure.string :as string]]))
   #?(:cljs (:require-macros [rewrap.interop])))
-
-#?(:cljs 
-    (defn create-element [props & children]
-      (.createElement react props children)))
 
 ;; ## Casing Utilities
 #?(:clj
@@ -69,5 +63,4 @@
 
 
 (comment
-  (macroexpand '(intern-comps  'rn '[View]))
-  )
+  (macroexpand '(intern-comps  'rn '[View])))
