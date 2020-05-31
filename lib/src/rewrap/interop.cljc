@@ -26,12 +26,18 @@
            (if val val (throw (ex-info "Could not resolve symbol" {:sym x}))))
          x))
 
-     (defn transform-args-props "Apply function `f` to `args` props."
-       [args f]
-       (if-let [props (when (map? (first args))
-                        (first args))]
-         (assoc (into [] args) 0 (f props))
-         args))
+     (defn has-props?
+       "Checks if component `args` has props.
+        Props are assumed to be a static cljs map. A symbol is considered to be a dynamic child."
+       [args] (map? (first args)))
+
+     (defn parse-args 
+       "Apply `parse-props` and `parse-child` to component args."
+       [args {:keys [parse-props parse-child]}]
+       (let [props    (if (has-props? args) (first args) nil)
+             children (if props (rest args) args)]
+         (cons (when props (parse-props props))
+               (for [ch children] (parse-child ch)))))
 
      (defn js-module* "Macro helper for getting js module, throws error if module does not exist."
        [sym k]
@@ -52,14 +58,17 @@
         Can optionally pass additional options:
          - `parse-name`, fn to parse interned component name.
          - `parse-props`, fn to pre-process props passed to compiler.}"
-       [{:keys [js-ns interns compiler parse-name parse-props]
-         :or   {parse-name   camel->lisp
-                parse-props  identity}}]
+       [{:keys [js-ns interns compiler parse-name parse-props parse-child]
+         :or   {parse-name     camel->lisp
+                parse-props    identity
+                parse-child    identity}}]
        `(do
           ~@(for [k (symsolve (as-is interns))]
               (comp-factory* js-ns (str k) {:compiler    compiler
                                             :parse-name  parse-name
-                                            :parse-args `(fn [args#] (transform-args-props args# ~parse-props))}))))))
+                                            :parse-args `(fn [args#]
+                                                           (parse-args args# {:parse-props ~parse-props
+                                                                              :parse-child ~parse-child}))}))))))
 
 
 (comment
