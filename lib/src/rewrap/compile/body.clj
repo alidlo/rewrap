@@ -2,8 +2,8 @@
   "NOTE: This code was forked from: weavejester/hiccup -> r0man/sablono -> rauhs/hicada.")
 
 (defmulti parse-expr-output
-  "Parse s-expression `form` output data with `emitter` function.
-   Dispatches based on the expression operator's name."
+  "Parse s-expr `form` output data with `emitter` function.
+   Dispatches based on the expr operator's name."
   (fn [form _emitter] (name (first form)))
   :default (fn [form _] form))
 

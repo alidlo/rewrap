@@ -1,9 +1,28 @@
 (ns rewrap.interop
   (:require #?@(:cljs [[goog.object]])
-            #?@(:clj [[rewrap.compile.component :as component]
-                      [rewrap.util.casing :as casing]]))
+            #?@(:clj [[clojure.string :as string]
+                      [rewrap.compile.component :as component]]))
   #?(:cljs (:require-macros [rewrap.interop])))
 
+;; ## casing utilities
+#?(:clj
+   (defn camel->lisp "Convert camel-case string `s` to lisp-case."
+     [s]
+     (-> s
+         (string/replace #"(.)([A-Z][a-z]+)" "$1-$2")
+         (string/replace #"([a-z0-9])([A-Z])" "$1-$2")
+         (string/lower-case))))
+
+;; ## wrapping utilities
+#?(:clj
+   (defn js-module*
+     "Wrapper to get js module from given object `o` and key `k`, throws error if module does not exist."
+     [o k]
+     `(if-let [module# (goog.object/get ~o ~k)]
+        module#
+        (throw (ex-info "Interned component not found" {:obj ~o :key ~k})))))
+
+;; ## interning utilities
 #?(:clj
    (do
      (defn- as-is "Ensures value is not quoted. (It's useful to quote args to prevent unresolved symbol errors.)"
@@ -17,13 +36,7 @@
            (if val val (throw (ex-info "Could not resolve symbol" {:sym x}))))
          x))
 
-     (defn js-module* "Macro helper for getting js module, throws error if module does not exist."
-       [sym k]
-       `(if-let [module# (goog.object/get ~sym ~k)]
-          module#
-          (throw (ex-info "Interned component not found" {:sym ~sym :key ~k}))))
-
-     (defn comp-factory*
+     (defn- comp-factory*
        "Macro helper for wrapping component in `compiler` macro that parsers cljs component `args`."
        [sym k {:keys [compiler parse-name parse-args]}]
        `(defmacro ~(symbol (parse-name k))
@@ -37,7 +50,7 @@
          - `parse-name`, fn to parse interned component name.
          - `parse-props`, fn to pre-process props passed to compiler.}"
        [{:keys [js-ns interns compiler parse-name parse-props parse-child]
-         :or   {parse-name     casing/camel->lisp
+         :or   {parse-name     camel->lisp
                 parse-props    identity
                 parse-child    identity}}]
        `(do

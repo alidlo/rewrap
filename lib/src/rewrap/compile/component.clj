@@ -18,7 +18,7 @@
               parse-child identity}}]
   (let [[props children] (normalize-args args)]
     (cons (when props (parse-props props))
-          (for [ch children] (parse-child ch)))))
+          (mapv parse-child children))))
 
 (comment
   (defn args [x] (parse-args x {:parse-props (fn [props] `(ex/->js ~props))
