@@ -4,8 +4,10 @@
 (defmulti parse-expr-output
   "Parse s-expr `form` output data with `emitter` function.
    Dispatches based on the expr operator's name."
-  (fn [form _emitter] (name (first form)))
-  :default (fn [form _] form))
+  (fn [form _emitter] (name (first form))))
+
+(defmethod parse-expr-output :default [form _] 
+  form)
 
 (defmethod parse-expr-output "do"
   [[_ & forms] f]
