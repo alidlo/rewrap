@@ -1,1 +1,16 @@
-{:deps  {:aliases [:local]}}
+{:deps  {:aliases [:local]}
+ :dev-http {5555 "example/public"}
+
+ :builds
+ {:demo
+  {:target     :browser
+   :output-dir "example/public/js"
+   :asset-path "/js"
+   :modules    {:main {:init-fn demo.app.client/mount
+                       :entries [demo.app.client]}}
+   :js-options {:extensions [".web.js" ".js" ".json"]
+                :resolve    {"react-native" {:target :npm
+                                             :require "react-native-web"}}}
+   :dev        {:closure-defines  {'goog.DEBUG true}}
+   :devtools   {:preloads [devtools.preload
+                           demo.preload]}}}}

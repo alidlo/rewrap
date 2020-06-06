@@ -1,0 +1,2 @@
+{:paths ["src" "dev"]
+ :deps {lilactown/helix   {:mvn/version "0.0.12"}}}

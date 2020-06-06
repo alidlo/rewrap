@@ -1,0 +1,15 @@
+{
+  "name": "@rewrap/demo",
+  "version": "0.1.0",
+  "dependencies": {
+    "expo": "35.0.0",
+    "react": "16.13.1",
+    "react-dom": "16.13.1",
+    "react-native-web": "0.12.2",
+    "react-router": "^6.0.0-alpha.5",
+    "react-router-dom": "^6.0.0-alpha.5"
+  },
+  "devDependencies": {
+    "react-refresh": "0.8.1"
+  }
+}
