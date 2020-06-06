@@ -4,6 +4,7 @@
                       [rewrap.compile.component :as component]]))
   #?(:cljs (:require-macros [rewrap.interop])))
 
+
 ;; ## casing utilities
 #?(:clj
    (defn camel->lisp "Convert camel-case string `s` to lisp-case."
@@ -14,6 +15,7 @@
          (string/lower-case))))
 
 ;; ## wrapping utilities
+
 #?(:clj
    (defn js-module*
      "Wrapper to get js module from given object `o` and key `k`, throws error if module does not exist."
@@ -23,6 +25,7 @@
         (throw (ex-info "Interned component not found" {:obj ~o :key ~k})))))
 
 ;; ## interning utilities
+
 #?(:clj
    (do
      (defn- as-is "Ensures value is not quoted. (It's useful to quote args to prevent unresolved symbol errors.)"
@@ -36,33 +39,28 @@
            (if val val (throw (ex-info "Could not resolve symbol" {:sym x}))))
          x))
 
-     (defn- comp-factory*
-       "Macro helper for wrapping component in `compiler` macro that parsers cljs component `args`."
-       [sym k {:keys [compiler parse-name parse-args]}]
-       `(defmacro ~(symbol (parse-name k))
+     (defn comp-factory* "Macro helper for wrapping component of key `k` in `emitter` macro and args `parsers`."
+       [k {:keys [emitter parsers]}]
+       `(defmacro ~(symbol (camel->lisp k))
           [& args#]
-          `(~~compiler ~(js-module* ~sym ~k) ~@(~parse-args args#))))
-
+          `(~~emitter ~@(component/parse-args (cons ~k args#) {:parsers ~parsers}))))
+     
      (defmacro intern-comps
-       "Create component defs from from given `js-ns` and `interns`, using custom `compiler` macro. 
-        Note: The `interns` can be quoted to avoid linter 'unresolved symbol' error, i.e. '[View Text].
-        Can optionally pass additional options:
-         - `parse-name`, fn to parse interned component name.
-         - `parse-props`, fn to pre-process props passed to compiler.}"
-       [{:keys [js-ns interns compiler parse-name parse-props parse-child]
-         :or   {parse-name     camel->lisp
-                parse-props    identity
-                parse-child    identity}}]
+       "Create component defs for given `interns` using custom `emitter` macro and component args `parsers`. 
+        Note: The `interns` can be quoted to avoid linter 'unresolved symbol' error, i.e. '[View Text]."
+       [{:keys [interns emitter parser]
+         :or {parser {}}}]
        `(do
           ~@(for [k (symsolve (as-is interns))]
-              (comp-factory* js-ns
-                             (str k)
-                             {:compiler    compiler
-                              :parse-name  parse-name
-                              :parse-args `(fn [args#]
-                                             (component/parse-args args# {:parse-props ~parse-props
-                                                                          :parse-child ~parse-child}))}))))))
+              (comp-factory* (str k) {:emitter emitter :parsers {any? parser}}))))))
 
 
 (comment
-  (macroexpand '(intern-comps  'rn '[View])))
+  (require '[clojure.walk])
+  (do
+    (def xpand clojure.walk/macroexpand-all)
+    (def parsers {any? {:tag (fn [tag] (js-module* `rr tag))}}))
+
+  (macroexpand '(intern-comps  {:parsers {}
+                                :interns '[View]})))
+
