@@ -1,58 +1,55 @@
 # Rewrap (WIP)
 
+Wrap React in idiomatic Clojurescript, without the boilerplate.
+
 ![Clojars Project](https://img.shields.io/clojars/v/rewrap)
 
-Rewrap makes it easy to use React libraries in Clojurescript without all the boilerplate.
+The primary motivation for Rewrap is to remove the boilerplate in wrappings entire React libraries.
 
-Preview:
+The intention was to pre-compile these components with existing React wrappers, such as [Helix](https://github.com/Lokeh/helix), which has great support for React hooks development, and [Hicada](https://github.com/rauhs/hicada), which allows you to compose component as Hiccup data. While that is possible, mixing these two libraries and composing both built-in and custom components proved error-prone and inflexible, so also included is a more extensible Hiccup compiler.
 
-```clj
-;; intern the components in my-app/comps.cljc 
-(interop/intern-comps {:js-ns   'react-native
-                      :interns  [View Text] 
-                      :compiler 'my-app.ui/compiler}))
-
-;; use them in another namespace, requiring [my-app.comps :as c]
-(c/view (c/text "Hello!"))
-```
+The [example](https://github.com/alidlo/rewrap/tree/master/example) in this repo shows how you can combine Rewrap and Helix in a React Native project.
 
 ## Usage 
 
-Currently, Rewrap exposes a single function, `intern-comps` that creates component wrapper definitions in a namespace.
+### Compose components
 
-Rewrap works with existing Clojurescript React wrappers, such as [Helix](https://github.com/Lokeh/helix).
+To compile Hiccup data into React elements, you can use `rewrap.hiccup/compile`.
 
-Below, for example, is how you could use Helix and React Native together:
+Compile accepts a custom `emitter` macro, with `[tag props children]` as arguments and should return them in a React create element call. 
 
-```clj
-;; my-app/ui.cljc
-(ns my-app.ui
-  (:require [helix.core]
-            [rewrap.interop :as interop]
-            #?@(:cljs [["react-native" :as react-native]]))
-  #?(:cljs (:require-macros [my-app.ui])))
+Along with that, you can pass a custom `:parsers` map, of `{clause parser}` pairs. Each parser will be called if the clause matches its respective tag. A clause can either be a value (i.e. `:<>`) or predicate function (i.e. `keyword?`). A parser can either be a function that transforms [tag props children] or a map with one of `:tag`, `:props`, or `:children` keys for parsing those respective values.
 
-#?(:cljs
-   (def rn react-native))
+```cljs
+;; 1) declare custom compiler
+(defmacro emitter "Wraps component args in react create element call."
+  [tag props children]
+  `(helix.core/create-element ~tag ~props ~@children))
 
-#?(:clj
-   (interop/intern-comps {:js-ns   'my-app.ui/rn
-                          :interns [View Text TextInput Button] 
-                          :compiler 'helix.core/$}))
+(defmacro h "Component hiccup compiler."
+  [body]
+  (hiccup/compile body
+                  {:emitter      'example/emitter
+                   :parsers      {:<>      {:tag 'helix.core/Fragment}
+                                  keyword? {:tag   #(interop/js-module* `react-native (camel-case (str (name %))))
+                                            :props helix.core/-native-props})})}
+;; 2) use hiccup templates
+(h [:view [:text "Hello!"]])
 ```
 
-Notice how as the `:js-ns` we pass `my-app.ui/rn` so the list of `interns` will be accessed under that js module (i.e. `rn.View`, `rn.Text`, etc.).
+*Note: the parsers are called in the order they are found, so as a precaution, you should pass an `array-map` to parsers. Though this is already done under the hood by Clojure if map size is approximately 8.
 
-As the compiler, we passed the `helix.core/$` macro, so the components props and children will be pre-compiled according to that macro.
+### Wrap libraries
 
-Do note, that in order to pre-compile these components arguments as well, they're also interned as macros. 
+#### intern components
+To wrap entire React libraries you can use `rewrap.interop/intern-comps`.
 
-Make sure to define `rewrap.interop` in `:cljs` and `:clj` namespaces so the appropriate code can be required.
+It accepts a custom `:emitter` macro (same usage as `:emitter` in `hiccup/compile`).
 
-By default, the components are interned in lisp-case. So `TextInput`, for example, would be accessed as `text-input`. You can change this with the `parse-name` option. 
+Along with that you can pass one custom `:parser` (same usage as the `:parsers` in `hiccup/compile`).
 
-For extra processing of props before passing them to the macro, you can pass the `parse-props` option.
-
-
-
-
+```clj
+(interop/intern-comps {:emitter 'example/emitter
+                       :parser {:tag   #(interop/js-module* `rr (str (name %)))
+                                :props #(hxp/-native-props %)}})
+```
