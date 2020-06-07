@@ -22,7 +22,7 @@ These two facilities are in [rewrap](https://github.com/alidlo/rewrap/tree/maste
 (c/view (c/text "Rewrap!"))
 ```
 
-Along with that, is a [rewrap/hiccup](https://github.com/alidlo/rewrap/tree/master/rewrap-hiccup), a compiler for composing components as Clojure data. There's existing libraries for compiling  Hiccup-like syntax, but they pre-configured their parsing of component arguments and weren't extensible enough for mixing built-in and interned components. 
+Along with that, is a [rewrap/hiccup](https://github.com/alidlo/rewrap/tree/master/rewrap-hiccup), a compiler for composing components as Clojure data. There's existing libraries for compiling  Hiccup-like syntax, but they pre-configured their parsing of component arguments and weren't extensible enough for mixing built-in and interned component macros. 
 
 ```clj
 ;; # Rewrap Hiccup Example
