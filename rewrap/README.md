@@ -1,9 +1,10 @@
+# Rewrap 
 
-## Wrap components
+## Usage 
 
 ### Intern component libraries
 
-To wrap entire React libraries you can use `rewrap.library/intern-comps`.
+To wrap entire React libraries you can use `rewrap.interop/intern-comps`.
 
 It accepts a custom `:emitter` macro (same usage as `:emitter` in `hiccup/compile`).
 
@@ -21,10 +22,9 @@ The interned component are defined as macro definitions, since that makes it pos
 
 **Tag**
 
-To parse a component tag as a javascript module you can use `rewrap.library/js-module*`.
+To parse a component tag as a javascript module you can use `rewrap.interop/js-module*`.
 
 It accepts the object's namespace and the given access key, i.e. ```(js-module* `rn "View")```.
-
 
 **Props**
 
@@ -35,7 +35,6 @@ Using Helix's prop implementation isn't ideal, but we're trying to leverage exis
 **Children**
 
 If you plan to compose components as Hiccup data, we recommend you don't intern a component's children with any special parsing as that may conflict with Hiccup compilation.
-
 
 # License
 
