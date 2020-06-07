@@ -2,7 +2,7 @@
 
 The primary motivation for Rewrap is two-fold: 
 
-* Expose standalone utilities pre-compiling React components.
+* Expose standalone utilities for pre-compiling React components.
 * Wrap entire React libraries with one macro call.
 
 These two facilities are in [rewrap/core](https://github.com/alidlo/rewrap/tree/master/rewrap-core).
@@ -39,7 +39,7 @@ Along with that, is a [rewrap/hiccup](https://github.com/alidlo/rewrap/tree/mast
 (h [:view [:text "Rewrap!"]])
 ```
 
-To write React hooks in idiomatic Clojure and have a better development experience (e.g. hook warnings and fast refresh), we recommend using Rewrap with a minimal React wrapper like [Helix](https://github.com/Lokeh/helix).
+Finally, to write React hooks in idiomatic Clojure and have a better development experience (e.g. hook warnings and fast refresh), we recommend using Rewrap with a minimal React wrapper like [Helix](https://github.com/Lokeh/helix).
 
 The [demo](https://github.com/alidlo/rewrap/tree/master/demo) in this repo shows how you can combine Rewrap and Helix in a [React Native Web](https://github.com/necolas/react-native-web) project.
 
