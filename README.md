@@ -44,7 +44,13 @@ Finally, to write React hooks in idiomatic Clojure and have a better development
 
 ## Install 
 
-As this project is still in alpha please use this repo as git dependency in tools.deps.
+As this project is still in alpha please use this repo as git dependency in a `deps.edn` files.
+
+```
+{rewrap  {:git/url "https://github.com/alidlo/rewrap.git"
+          ;; you can use latest commit, or most stable one as posted below
+          :sha "91c2b2617ffe175c6f363c47aea476dec1580e32"}}
+```
 
 ## Usage 
 
