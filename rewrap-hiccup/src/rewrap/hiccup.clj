@@ -1,11 +1,11 @@
 (ns rewrap.hiccup
   (:refer-clojure :exclude [compile])
   (:require [rewrap.compile.component :as component]
-            [rewrap.compile.body :as body]))
+            [rewrap.compile.expression :as expression]))
 
 (declare compile)
 
-(defn create-parsers "Merge custom `parsers` with default one for compiling hiccup children." 
+(defn create-parsers "Merge custom `parsers` with default one for compiling hiccup children."
   [parsers opts]
   (merge parsers
         ;; note: we use custom inline fn as key so as to not override any user defined parsers
@@ -25,9 +25,8 @@
                        `(~emitter ~@(component/parse-args body {:parsers (create-parsers parsers opts)}))
                        ;; note: precompiled component children are spliced because they are spread in their macro body
                        `(~tag ~props ~@(mapv #(compile % opts) children))))
-    (list? body)   (body/parse-expr-output body #(compile % opts))
+    (list? body)   (expression/parse-output body #(compile % opts))
     :else body))
-
 
 (comment
   (require '[clojure.walk])
@@ -53,7 +52,7 @@
   (xpand '(h (let [msg "hello"] [:txt msg])))
   (xpand '(h [:vw (if bool [:txt "Yes"] [:txt "No"])]))
   (xpand '(h (let [msg "hello"] (when msg [:txt msg]))))
-  
+
   ;; custom components
   (xpand `(h [component [:txt "hello"]]))
   (xpand `(h [component {:style []} [:txt "hello"]]))

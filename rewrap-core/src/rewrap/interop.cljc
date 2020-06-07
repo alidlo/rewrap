@@ -4,8 +4,8 @@
                       [rewrap.compile.component :as component]]))
   #?(:cljs (:require-macros [rewrap.interop])))
 
+;; ## casing
 
-;; ## casing utilities
 #?(:clj
    (defn camel->lisp "Convert camel-case string `s` to lisp-case."
      [s]
@@ -14,17 +14,17 @@
          (string/replace #"([a-z0-9])([A-Z])" "$1-$2")
          (string/lower-case))))
 
-;; ## wrapping utilities
+;; ## wrapping
 
 #?(:clj
    (defn js-module*
-     "Wrapper to get js module from given object `o` and key `k`, throws error if module does not exist."
-     [o k]
-     `(if-let [module# (goog.object/get ~o ~k)]
+     "Wrapper to get js module from given object namespace `ons` and key `k`, throws error if module does not exist."
+     [ons k]
+     `(if-let [module# (goog.object/get ~ons ~k)]
         module#
-        (throw (ex-info "Interned component not found" {:obj ~o :key ~k})))))
+        (throw (ex-info "Interned component not found" {:obj ~ons :key ~k})))))
 
-;; ## interning utilities
+;; ## interning
 
 #?(:clj
    (do
