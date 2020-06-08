@@ -49,7 +49,7 @@ As this project is still in alpha please use this repo as git dependency in a `d
 ```
 {rewrap  {:git/url "https://github.com/alidlo/rewrap.git"
           ;; you can use latest commit, or most stable one as posted below
-          :sha "91c2b2617ffe175c6f363c47aea476dec1580e32"}}
+          :sha "869450d4498d8bca1c1cef00fcd95d70de6764b4"}}
 ```
 
 ## Usage 
