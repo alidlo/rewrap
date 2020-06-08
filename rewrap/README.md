@@ -10,12 +10,21 @@ It accepts a custom `:emitter` macro, with `[tag props children]` as arguments a
 
 Along with that you can pass one custom `:parser` (similar usage to the parsers documented [below](#parse-component-arguments)).
 
-The interned component are defined as macro definitions, since that makes it possible to pre-compile their arguments,  and their names are lisp-cased, e.g. `c/TextInput` would be accessed as `c/text-input`.
+The interned component are defined as macro definitions, since that makes it possible to pre-compile their arguments, and their names are lisp-cased, e.g. `c/TextInput` would be accessed as `c/text-input`.
 
 ```clj
+;; intern component in cljc file, requiring interned macros 
+;; e.g. (:require-macros [myapp.ui.core])
 (interop/intern-comps {:emitter 'example/emitter
-                       :parser {:tag   #(interop/js-module* `rr (str (name %)))
-                                :props #(impl/-native-props %)}})
+                       :parser {:tag   #(interop/js-module* `react-native (camel-case (str (name %))))
+                                :props #(impl/->props %)}
+                       :interns [View 
+                                 Text]})
+
+;; to test the interned components,  you can macroexpand them in the repl 
+(comment 
+  (macroexpand '(my-app.ui/text {:style [{:fontSize 16}]} "Hello!"))
+)
 ```
 
 ### Parse component arguments

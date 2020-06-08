@@ -10,15 +10,16 @@ These two facilities are in [rewrap](https://github.com/alidlo/rewrap/tree/maste
 ```clj
 ;; # Rewrap Example
 
-;; intern entire React Native library in myapp/ui.core.cljc
-;; require [rewrap.interop as interop]
-(interop/intern-comps 
-  {:emitter 'my-app/emit-element
-   :parser {:tag   #(interop/js-module* `react-native (camel-case (str (name %))))
-            :props #(impl/native-props %)}})
+(require '[rewrap.interop as interop])
+
+;; intern entire React Native library
+(interop/intern-comps {:emitter 'example/emitter
+                       :parser {:tag   #(interop/js-module* `react-native (camel-case (str (name %))))
+                                :props #(impl/->props %)}
+                       :interns [View 
+                                 Text]})
 
 ;; use interned components
-;; require [myapp.ui.core :as c]
 (c/view (c/text "Rewrap!"))
 ```
 
@@ -26,9 +27,9 @@ Along with that, is a [rewrap/hiccup](https://github.com/alidlo/rewrap/tree/mast
 
 ```clj
 ;; # Rewrap Hiccup Example
+(require '[rewrap.hiccup as hiccup])
 
 ;; configure hiccup compiler 
-;; require [rewrap.hiccup as hiccup]
 (defmacro h "Component hiccup compiler."
   [body]
   (hiccup/compile body
