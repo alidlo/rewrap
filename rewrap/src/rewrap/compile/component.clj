@@ -1,5 +1,6 @@
 (ns rewrap.compile.component)
 
+;; TODO what about JS maps?
 (defn props?
   "Checks if value `x` is component props.
   Props are assumed to be a static cljs map. A symbol is considered to be a dynamic child."
@@ -24,7 +25,7 @@
   "Apply `parser` on normalized args.
    Parser can be a function (fn [nargs] ,,,) or map with individual :tag, :props, :children options."
   [nargs parser]
-  (if (fn? parser) (parser nargs) (apply-map-parser nargs parser)))
+  (if (fn? parser) (apply parser nargs) (apply-map-parser nargs parser)))
 
 (defn- check-clause 
   "Check whether given `clause` applies to `tag`. 
@@ -33,14 +34,17 @@
   (if (fn? clause) (clause tag) (= clause tag)))
 
 (defn parse-args
-  "Parse component `args` using `parsers` and `cond-parsers`. 
-   Both accept a vector of [clause parser] as defined by #check-clause and #apply-parser, respectively."
+  "Parse component `args` using `parsers`.
+   Parsers are a {clause parser} as defined by #check-clause and #apply-parser, respectively.
+   If a parser returns anything other than a vector, parsing is terminated early."
   [args {:keys [parsers] :or {parsers {}}}]
   (let [nargs (normalize-args args)]
     (reduce (fn [acc [clause parser]]
-              (if (check-clause (first acc) clause)
-                (apply-parser acc parser)
-                acc))
+              (if (vector? acc)
+                (if (check-clause (first acc) clause)
+                  (apply-parser acc parser)
+                  acc)
+                (reduced acc)))
             nargs
             parsers)))
 

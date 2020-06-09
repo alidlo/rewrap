@@ -9,4 +9,10 @@
                          {:parsers {:txt     {:tag "text"}
                                     keyword? {:tag #(name %)}
                                     any?     {:tag (fn [t] (string/capitalize t))}}})
-           ["Text" nil ["Foo"]]))))
+           ["Text" nil ["Foo"]])))
+
+  (testing "terminates parsing if list is found"
+    (is (= (c/parse-args [:txt "Foo"]
+                         {:parsers {:txt     (fn [_ _ ch] `(el "text" ~ch))
+                                    keyword? {:tag :error}}})
+           `(el "text" ["Foo"])))))

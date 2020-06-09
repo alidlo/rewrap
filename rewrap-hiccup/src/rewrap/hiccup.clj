@@ -8,8 +8,8 @@
 (defn create-parsers "Merge custom `parsers` with default one for compiling hiccup children."
   [parsers opts]
   (merge parsers
-        ;; note: we use custom inline fn as key so as to not override any user defined parsers
-         {#(identity %) {:children (fn [ch] (mapv #(compile % opts) ch))}}))
+        ;; We use custom inline fn as key so as to not override any user defined parsers.
+         {#(identity %) {:children (fn [ch] (if (vector? ch) (mapv #(compile % opts) ch) ch))}}))
 
 (defn compile
   "Compile any hiccup in component `body` using custom `emitter` and `parsers` options.
@@ -20,12 +20,20 @@
          :or {precompiled? (fn [_] false)}
          :as opts}]
   (cond
-    (vector? body) (let [[tag props children] (component/normalize-args body)]
-                     (if-not (precompiled? tag)
-                       `(~emitter ~@(component/parse-args body {:parsers (create-parsers parsers opts)}))
-                       ;; note: precompiled component children are spliced because they are spread in their macro body
-                       `(~tag ~props ~@(mapv #(compile % opts) children))))
-    (list? body)   (expression/parse-output body #(compile % opts))
+    (vector? body)
+    (let [[tag props children] (component/normalize-args body)]
+      (if-not (precompiled? tag)
+        (let [args (component/parse-args body {:parsers (create-parsers parsers opts)})]
+          (cond
+            (vector? args) `(~emitter ~@(component/parse-args body {:parsers (create-parsers parsers opts)}))
+            ;; Any other sequential is expected to self-callable code, e.g. another macro.
+            (sequential? args)  `(~@args)
+            :else (throw (ex-info "Invalid component argument." {:args args}))))
+        ;; Precompiled component children are spliced because they're spread inside macro body.
+        `(~tag ~props ~@(mapv #(compile % opts) children))))
+  
+    (list? body) (expression/parse-output body #(compile % opts))
+  
     :else body))
 
 (comment
