@@ -1,0 +1,3 @@
+#kaocha/v1
+#merge [{:tests [{:id         :unit
+                  :test-paths ["rewrap/test"]}]}]
