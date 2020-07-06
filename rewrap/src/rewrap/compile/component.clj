@@ -1,10 +1,16 @@
-(ns rewrap.compile.component)
+(ns rewrap.compile.component "Compile component arguments.")
 
-;; TODO what about JS maps?
+(defn js-val? "Checks if type of `x` is a Javascript constructor value."
+  [x]
+  (instance? cljs.tagged_literals.JSValue x))
+
 (defn props?
   "Checks if value `x` is component props.
-  Props are assumed to be a static cljs map. A symbol is considered to be a dynamic child."
-  [x] (map? x))
+   Props are assumed to be a static cljs map.
+   Since we don't have access to JS object types, we assume any JS value to be a props object.
+   Any symbol is considered to be a dynamic child."
+  [x]
+  (or (map? x) (js-val? x)))
 
 (defn normalize-args "Converts `args` to [tag props children] vector."
   [args]
@@ -19,7 +25,7 @@
                   props identity
                   children identity}}]
   (letfn [(fval [fv x] (if (fn? fv) (fv x) fv))]
-   [(fval tag t) (when p (fval props p)) (fval children ch)]))
+   [(fval tag t) (when p (if-not (js-val? p) (fval props p) p)) (fval children ch)]))
 
 (defn- apply-parser 
   "Apply `parser` on normalized args.
@@ -40,11 +46,12 @@
   [args {:keys [parsers] :or {parsers {}}}]
   (let [nargs (normalize-args args)]
     (reduce (fn [acc [clause parser]]
-              (if (vector? acc)
-                (if (check-clause (first acc) clause)
-                  (apply-parser acc parser)
-                  acc)
-                (reduced acc)))
+              (let [tag (first acc)]
+               (if (vector? acc)
+                 (if (check-clause tag clause)
+                   (apply-parser acc parser)
+                   acc)
+                 (reduced acc))))
             nargs
             parsers)))
 
