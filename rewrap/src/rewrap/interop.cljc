@@ -21,7 +21,7 @@
      "Wrapper to get js module from given object namespace `ons` and key `k`, throws error if module does not exist."
      [ons k]
      `(if-let [module# (goog.object/get ~ons ~k)]
-        module#
+        (doto module# (goog.object/set "displayName" ~(str "Rewrap__" *ns* "/" k)))
         (throw (ex-info "Interned component not found" {:obj ~ons :key ~k})))))
 
 ;; ## interning
