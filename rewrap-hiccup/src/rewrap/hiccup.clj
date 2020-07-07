@@ -12,28 +12,29 @@
          {#(identity %) {:children (fn [ch] (if (vector? ch) (mapv #(compile % opts) ch) ch))}}))
 
 (defn compile
-  "Compile any hiccup in component `body` using custom `emitter` and `parsers` options.
-   Emitter should be a macro that accepts [tag props children] arguments.
-   If given component is already compiled, pass `precompiled?` (fn [tag] bool) and only hiccup children are compiled.
-   Parsers is a {clause parser} map as specified in #component/parse-args."
-  [body {:keys [precompiled? emitter parsers]
-         :or {precompiled? (fn [_] false)}
+  "Compile any hiccup in component `body` using custom `opts`.
+   Options: 
+      - `emitter`      - create element macro that accepts [tag props children] arguments.
+      - `parsers`      - {clause parser} map as specified in #component/parse-args.
+      - `precompiled?` - predicate fn, if component tag/props are already compiled, only hiccup children are compiled.
+      - `callable?`    - preedicatte fn, component args are not precompiled but output itself can be self-called."
+  [body {:keys [emitter parsers precompiled? callable?]
+         :or {precompiled? (fn [_] false)
+              callable?    (fn [_] false)}
          :as opts}]
   (cond
-    (vector? body)
-    (let [[tag props children] (component/normalize-args body)]
-      (if-not (precompiled? tag)
-        (let [args (component/parse-args body {:parsers (create-parsers parsers opts)})]
-          (cond
-            (vector? args) `(~emitter ~@(component/parse-args body {:parsers (create-parsers parsers opts)}))
-            ;; Any other sequential is expected to self-callable code, e.g. another macro.
-            (sequential? args)  `(~@args)
-            :else (throw (ex-info "Invalid component argument." {:args args}))))
-        ;; Precompiled component children are spliced because they're spread inside macro body.
-        `(~tag ~props ~@(mapv #(compile % opts) children))))
-  
+    (vector? body) (let [[initial-tag props children] (component/normalize-args body)]
+                     (if (precompiled? initial-tag)
+                        ;; Precompiled component children are spliced because they're spread inside macro body.
+                       `(~initial-tag ~props ~@(mapv #(compile % opts) children))
+                       (let [args (component/parse-args body {:parsers (create-parsers parsers opts)})]
+                         (cond
+                           (or (callable? initial-tag)
+                               ;; Non-vector sequentials are expected to be self-callable code.
+                               (and (not (vector? args)) (sequential? args))) `(~@args)
+                           (vector? args) `(~emitter ~@args)
+                           :else (throw (ex-info "Invalid component argument." {:args args}))))))
     (list? body) (expression/parse-output body #(compile % opts))
-  
     :else body))
 
 (comment
